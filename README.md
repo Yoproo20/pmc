@@ -5,7 +5,10 @@ Convert package manager commands between npm, yarn, pnpm, and bun.
 ## Installation
 
 ```bash
-bun install -g pmc
+bun install -g pkg-convert
+npm install pkg-convert
+pnpm add pkg-convert
+yarn add pkg-convert
 ```
 
 ## Usage
