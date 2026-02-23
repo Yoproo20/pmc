@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
 // src/cli.ts
 import { parseArgs } from "util";
@@ -765,10 +765,11 @@ pmc - Package Manager Converter
 
 Usage:
   pmc <target> [command]     Convert command to target package manager
+  pmc all <command>          Convert command to all other package managers
   pmc <target>               Show install command for target (auto-detected source)
 
 Arguments:
-  <target>     Target package manager (npm, yarn, pnpm, bun)
+  <target>     Target package manager (npm, yarn, pnpm, bun, all)
   [command]    Command to convert (if omitted, shows install command)
 
 Options:
@@ -777,6 +778,7 @@ Options:
 Examples:
   pmc bun "npm install lodash -D"
   pmc pnpm "yarn add react react-dom"
+  pmc all "npm install lodash"    # Shows yarn, pnpm, bun versions
   pmc bun                    # Auto-detect source, show "bun install"
   pmc yarn "pnpm add -g pkg" # Convert global install
 `);
@@ -784,9 +786,12 @@ Examples:
 function isValidPackageManager(value) {
   return PACKAGE_MANAGERS.includes(value);
 }
+function isAllCommand(value) {
+  return value === "all";
+}
 function main() {
   const { values, positionals } = parseArgs({
-    args: Bun.argv.slice(2),
+    args: process.argv.slice(2),
     options: {
       help: {
         type: "boolean",
@@ -805,13 +810,18 @@ function main() {
     process.exit(1);
   }
   const target = positionals[0];
-  if (!isValidPackageManager(target)) {
+  const isAll = isAllCommand(target);
+  if (!isAll && !isValidPackageManager(target)) {
     console.error(`Error: Invalid package manager "${target}"`);
-    console.error(`Valid options: ${PACKAGE_MANAGERS.join(", ")}`);
+    console.error(`Valid options: ${PACKAGE_MANAGERS.join(", ")}, all`);
     process.exit(1);
   }
   const commandString = positionals.slice(1).join(" ").trim();
   if (!commandString) {
+    if (isAll) {
+      console.error('Error: Command required when using "all"');
+      process.exit(1);
+    }
     const detected = detectPackageManager();
     const sourceManager = detected || "npm";
     console.log(`${target} install`);
@@ -822,11 +832,20 @@ function main() {
     console.error(`Error: Could not parse command "${commandString}"`);
     process.exit(1);
   }
-  const result = convertCommand(parsed, target);
-  console.log(result.command);
-  if (result.warnings && result.warnings.length > 0) {
-    for (const warning of result.warnings) {
-      console.error(`Warning: ${warning}`);
+  if (isAll) {
+    const sourceManager = parsed.manager;
+    const otherManagers = PACKAGE_MANAGERS.filter((m) => m !== sourceManager);
+    for (const manager of otherManagers) {
+      const result = convertCommand(parsed, manager);
+      console.log(result.command);
+    }
+  } else {
+    const result = convertCommand(parsed, target);
+    console.log(result.command);
+    if (result.warnings && result.warnings.length > 0) {
+      for (const warning of result.warnings) {
+        console.error(`Warning: ${warning}`);
+      }
     }
   }
 }
