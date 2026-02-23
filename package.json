@@ -1,5 +1,5 @@
 {
-  "name": "pmc",
+  "name": "@yoproo20/pmc",
   "version": "1.0.0",
   "description": "Package Manager Converter - Convert commands between npm, yarn, pnpm, and bun",
   "type": "module",
@@ -25,14 +25,18 @@
     "converter",
     "cli"
   ],
-  "author": "",
+  "author": "Yoproo20",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Yoproo20/pmc"
+    "url": "git+https://github.com/Yoproo20/pmc.git"
   },
   "bugs": "https://github.com/Yoproo20/pmc/issues",
   "homepage": "https://github.com/Yoproo20/pmc#readme",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "mitata": "^0.1.6",
